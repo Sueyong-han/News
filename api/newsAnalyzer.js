@@ -22,11 +22,12 @@ export async function analyzeNews() {
 
   // ===== 메인 반복 =====
   for (let hw of howList) {
+    let ExDate = [""];
     const query = `서울 ${where} ${hw}`;
     const url = `https://openapi.naver.com/v1/search/news.json?query=${encodeURIComponent(
       query
     )}&sort=sim&display=${ddplay}&start=1`;
-        
+    
     await new Promise(res => setTimeout(res, 500));
     try {
       // 1) 네이버 뉴스 요청
@@ -109,5 +110,3 @@ export async function analyzeNews() {
 
   return finNews;
 }
-
-
