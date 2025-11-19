@@ -104,8 +104,10 @@ export async function analyzeNews() {
     } catch (err) {
       console.error("네이버 오류: ", err.message);
     }
+    console.warn(`${hw} 분석 완료`);
   }
 
   return finNews;
 }
+
 
