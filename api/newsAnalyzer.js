@@ -26,7 +26,8 @@ export async function analyzeNews() {
     const url = `https://openapi.naver.com/v1/search/news.json?query=${encodeURIComponent(
       query
     )}&sort=sim&display=${ddplay}&start=1`;
-
+        
+    await new Promise(res => setTimeout(res, 500));
     try {
       // 1) 네이버 뉴스 요청
       let response = await axios.get(url, {
@@ -107,3 +108,4 @@ export async function analyzeNews() {
 
   return finNews;
 }
+
