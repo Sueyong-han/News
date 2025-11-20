@@ -160,7 +160,7 @@ export async function analyzeNews(where) {
                     }
                 } catch (ex) {
                     console.error(`Item Error: ${ex.message}`);
-                    if(e.message == "Request failed with status code 403" && Roop < 1)
+                    if(ex.message == "Request failed with status code 403" && Roop < 1)
                     {
                       if(GapiKey == GapiKeyOne) GapiKey = GapiKeyTwo;
                       else if(GapiKey == GapiKeyTwo) GapiKey = GapiKeyOne;
