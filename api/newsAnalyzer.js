@@ -180,6 +180,7 @@ export async function analyzeNews(where) {
     }
     return finNews;
     Roop = 0;
-    //fdfd
+    //fdfdfdf
     //jj
+
 }
