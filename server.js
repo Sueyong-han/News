@@ -18,6 +18,7 @@ app.get("/", (req, res) => {
 app.get("/news", async (req, res) => {
   try {
     const place = req.where;
+    console.log(`place: ${place}`);
     const data = await analyzeNews(place);
     
     res.json({ success: true, data });
