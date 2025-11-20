@@ -2,7 +2,7 @@ import axios from "axios";
 
 export async function analyzeNews(where) {
   // ===== 설정 =====
-  let ddplay = 6;
+  let ddplay = 10;
   let howList = ["살인", "절도", "강도", "강간", "교통사고"];
   let exclude = ["캄보디아", "뉴진스"];
   let minYear = 2015;
@@ -22,7 +22,7 @@ export async function analyzeNews(where) {
   // ===== 메인 반복 =====
   for (let hw of howList) {
     let ExDate = [""];
-    const query = `${where} ${hw}`;
+    const query = `서울 ${where} ${hw}`;
     const url = `https://openapi.naver.com/v1/search/news.json?query=${encodeURIComponent(
       query
     )}&sort=sim&display=${ddplay}&start=1`;
