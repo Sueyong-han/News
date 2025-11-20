@@ -11,6 +11,7 @@ export async function analyzeNews(where) {
   let finTitles = [];
   let finNews = [];
   let ExDate = [""];
+  let together = [""];
 
   const NaverClientId = "huZd7zaib4TwzKeL1CTf";
   const NaverClientSecret = "_U1v0LcMmI";
@@ -94,7 +95,7 @@ export async function analyzeNews(where) {
         let Where = parts[2]?.split(":")[1]?.trim() ?? "";
 
         let JungBok = message.includes("JungBok");
-        let together = ExDate.includes(When);
+        together = ExDate.includes(When);
         ExDate.push(When);
         }
 
