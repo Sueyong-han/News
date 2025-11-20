@@ -86,7 +86,7 @@ export async function analyzeNews(where) {
         let isXX = message.includes("XX");
 
         // '|' 단위 파싱
-        if(!isXx){
+        if(!isXX){
         let parts = message.split("|").map((p) => p.trim());
 
         let How = parts[0]?.split(":")[1]?.trim() ?? "";
@@ -111,3 +111,4 @@ export async function analyzeNews(where) {
 
   return finNews;
 }
+
