@@ -17,7 +17,7 @@ app.get("/", (req, res) => {
 
 app.get("/news", async (req, res) => {
   try {
-    let placee = req.query.place || "에러 못 받음";
+    let placee = decodeURIComponent(req.query.place) || "에러 못 받음";
     console.log(`place: ${placee}`);
     const data = await analyzeNews(placee);
     
