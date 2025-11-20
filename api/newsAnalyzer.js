@@ -2,7 +2,7 @@ import axios from "axios";
 
 export async function analyzeNews(where) {
   // ===== 설정 =====
-  let ddplay = 10;
+  let ddplay = 6;
   let howList = ["살인", "절도", "강도", "강간", "교통사고"];
   let exclude = ["캄보디아", "뉴진스"];
   let minYear = 2015;
