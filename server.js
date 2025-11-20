@@ -17,7 +17,7 @@ app.get("/", (req, res) => {
 
 app.get("/news", async (req, res) => {
   try {
-    const placee = req.query.place || "에러 못 받음";
+    let placee = req.query || "에러 못 받음";
     console.log(`place: ${placee}`);
     const data = await analyzeNews(placee);
     
@@ -30,6 +30,7 @@ app.get("/news", async (req, res) => {
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server running on port ${port}`));
+
 
 
 
