@@ -33,6 +33,9 @@ function parseKoreanDate(dateStr) {
         return null;
     }
 }
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // ==========================================
 // 핵심 로직 함수
@@ -168,7 +171,9 @@ export async function analyzeNews(where) {
                       console.log("Roop!");
                       analyzeNews(where);
                     }
-                    
+                    if(ex.message.includes(`Request failed with status code 429`)) 
+                    {sleep(500);
+                    }
                 }
             });
 
