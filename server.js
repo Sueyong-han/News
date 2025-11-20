@@ -17,9 +17,9 @@ app.get("/", (req, res) => {
 
 app.get("/news", async (req, res) => {
   try {
-    const place = req.where;
-    console.log(`place: ${place}`);
-    const data = await analyzeNews(place);
+    const placee = req.query.place || "에러 못 받음";
+    console.log(`place: ${placee}`);
+    const data = await analyzeNews(placee);
     
     res.json({ success: true, data });
   } catch (err) {
