@@ -35,7 +35,7 @@ function parseKoreanDate(dateStr) {
 // ==========================================
 // 핵심 로직 함수
 // ==========================================
-async function analyzeNews(where) {
+export async function analyzeNews(where) {
     let ExDate = [""];
     let titles = [];
     let finTitles = [];
