@@ -63,7 +63,7 @@ export async function analyzeNews(where) {
 
         titles.push(title);
 
-        const prompt = `"${desc} 기사 날짜: ${date}" 이 내용과 인터넷을 보고 이 내용이 소설의 내용이라면 XX만 출력하고 아니면, 범죄 종류와 날짜, 위치를 두서없이 '범죄 종류: ... | 범죄 날짜: ... | 범죄 위치: --시 --구 --동 ' 이런 식으로 나타내...`;
+        const prompt = `"${desc} 기사 날짜: ${date}" 이 내용과 인터넷을 보고 이 내용이 소설의 내용이거나 실제로 일어난것이 아닌 비유적인 표현이라면 XX만 출력하고 아니면, 범죄 종류와 날짜, 위치를 두서없이 '범죄 종류: ... | 범죄 날짜: ... | 범죄 위치: --시 --구 --동 ' 이런 식으로 나타내. 또한, 너가 나타낸 범죄 위치가 ${where}과 상관없다면 XX만 출력해`;
 
         const body = {
           model: "gemini-2.5-flash",
@@ -86,6 +86,7 @@ export async function analyzeNews(where) {
         let isXX = message.includes("XX");
 
         // '|' 단위 파싱
+        if(!isXx){
         let parts = message.split("|").map((p) => p.trim());
 
         let How = parts[0]?.split(":")[1]?.trim() ?? "";
@@ -95,6 +96,7 @@ export async function analyzeNews(where) {
         let JungBok = message.includes("JungBok");
         let together = ExDate.includes(When);
         ExDate.push(When);
+        }
 
         if (!isXX && !together) {
           finTitles.push(title);
