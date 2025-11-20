@@ -13,7 +13,7 @@ var Roop = 0;
 // 환경 변수에서 키 가져오기 (Render 대시보드에서 설정 예정)
 const NaverClientId = "huZd7zaib4TwzKeL1CTf";
 const NaverClientSecret = "_U1v0LcMmI";
-let GapiKey = "AIzaSyCQc1vU97U6A-zK_VImKFUuaNYkzVhqGG8";
+let GapiKey = "AIzaSyA1HEYUYD8-DxONWcDmho-9qrtV24w65Io";
 const GapiKeyOne = "AIzaSyCQc1vU97U6A-zK_VImKFUuaNYkzVhqGG8";//suyeongh584
 const GapiKeyTwo = "AIzaSyA1HEYUYD8-DxONWcDmho-9qrtV24w65Io"; //gnd81967
 const Gendpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
@@ -160,7 +160,7 @@ export async function analyzeNews(where) {
                     }
                 } catch (ex) {
                     console.error(`Item Error: ${ex.message}`);
-                    if(ex.message == "Request failed with status code 403" && Roop < 1)
+                    if(ex.message.includes(`Request failed with status code 403`) && Roop < 1)
                     {
                       if(GapiKey == GapiKeyOne) GapiKey = GapiKeyTwo;
                       else if(GapiKey == GapiKeyTwo) GapiKey = GapiKeyOne;
