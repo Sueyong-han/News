@@ -11,7 +11,6 @@ export async function analyzeNews(where) {
   let finTitles = [];
   let finNews = [];
   let ExDate = [""];
-  let together = [""];
 
   const NaverClientId = "huZd7zaib4TwzKeL1CTf";
   const NaverClientSecret = "_U1v0LcMmI";
@@ -85,9 +84,10 @@ export async function analyzeNews(where) {
           gRes.data.choices?.[0]?.message?.content || "XX | 분석 실패";
 
         let isXX = message.includes("XX");
+        if(isXX) continue;
 
         // '|' 단위 파싱
-        if(!isXX){
+        
         let parts = message.split("|").map((p) => p.trim());
 
         let How = parts[0]?.split(":")[1]?.trim() ?? "";
@@ -95,9 +95,8 @@ export async function analyzeNews(where) {
         let Where = parts[2]?.split(":")[1]?.trim() ?? "";
 
         let JungBok = message.includes("JungBok");
-        together = ExDate.includes(When);
+        let together = ExDate.includes(When);
         ExDate.push(When);
-        }
 
         if (!isXX && !together) {
           finTitles.push(title);
