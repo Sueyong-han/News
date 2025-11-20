@@ -15,7 +15,7 @@ const NaverClientId = "huZd7zaib4TwzKeL1CTf";
 const NaverClientSecret = "_U1v0LcMmI";
 let GapiKey = "AIzaSyCQc1vU97U6A-zK_VImKFUuaNYkzVhqGG8";
 const GapiKeyOne = "AIzaSyCQc1vU97U6A-zK_VImKFUuaNYkzVhqGG8";//suyeongh584
-const GapiKeyTwo = "AIzaSyA1HEYUYD8-DxONWcDmho-9qrtV24w65Io" //gnd81967
+const GapiKeyTwo = "AIzaSyA1HEYUYD8-DxONWcDmho-9qrtV24w65Io"; //gnd81967
 const Gendpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
 // ==========================================
