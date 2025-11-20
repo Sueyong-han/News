@@ -1,114 +1,170 @@
-import axios from "axios";
+import axios from 'axios';
 
-export async function analyzeNews(where) {
-  // ===== 설정 =====
-  let ddplay = 10;
-  let howList = ["살인", "절도", "강도", "강간", "교통사고"];
-  let exclude = ["캄보디아", "뉴진스"];
-  let minYear = 2015;
+app.use(cors());
 
-  let titles = [];
-  let finTitles = [];
-  let finNews = [];
-  let ExDate = [""];
+// ==========================================
+// 설정 및 변수
+// ==========================================
+const ddplay = 10;
+const howList = ["살인", "강도", "절도", "성범죄", "교통사고"];
+const exclude = ["캄보디아", "뉴진스"];
+const minYear = 2015;
 
-  const NaverClientId = "huZd7zaib4TwzKeL1CTf";
-  const NaverClientSecret = "_U1v0LcMmI";
+// 환경 변수에서 키 가져오기 (Render 대시보드에서 설정 예정)
+const NaverClientId = "huZd7zaib4TwzKeL1CTf";
+const NaverClientSecret = "_U1v0LcMmI";
+const GapiKey = "AIzaSyCQc1vU97U6A-zK_VImKFUuaNYkzVhqGG8";
+const Gendpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
-  const GapiKey = "AIzaSyCQc1vU97U6A-zK_VImKFUuaNYkzVhqGG8";
-  const Gendpoint =
-    "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-
-  // ===== 메인 반복 =====
-  for (let hw of howList) {
-    let ExDate = [""];
-    const query = `서울 ${where} ${hw}`;
-    const url = `https://openapi.naver.com/v1/search/news.json?query=${encodeURIComponent(
-      query
-    )}&sort=sim&display=${ddplay}&start=1`;
-    
-    await new Promise(res => setTimeout(res, 500));
+// ==========================================
+// 유틸리티 함수
+// ==========================================
+function parseKoreanDate(dateStr) {
     try {
-      // 1) 네이버 뉴스 요청
-      let response = await axios.get(url, {
-        headers: {
-          "X-Naver-Client-Id": NaverClientId,
-          "X-Naver-Client-Secret": NaverClientSecret,
-        },
-      });
-
-      let items = response.data.items.filter((item) => {
-        let title = item.title || "";
-        let desc = item.description || "";
-        let pubdate = new Date(item.pubDate);
-
-        // exclude 필터
-        let hasExcluded = exclude.some(
-          (w) =>
-            title.toLowerCase().includes(w.toLowerCase()) ||
-            desc.toLowerCase().includes(w.toLowerCase())
-        );
-        if (hasExcluded) return false;
-
-        // 연도 필터
-        return pubdate.getFullYear() > minYear;
-      });
-
-      // ===== 2) Gemini 호출 (순차 실행) =====
-      for (let item of items) {
-        let title = (item.title || "").replace(/<b>|<\/b>/g, "");
-        let desc = item.description || "";
-        let link = item.link || "";
-        let date = item.pubDate || "";
-
-        titles.push(title);
-
-        const prompt = `"${desc} 기사 날짜: ${date}" 이 내용과 인터넷을 보고 이 내용이 소설의 내용이거나 실제로 일어난것이 아닌 비유적인 표현이라면 XX만 출력하고 아니면, 범죄 종류와 날짜, 위치를 두서없이 '범죄 종류: 살인,절도,강간,교통사고,강도 중 하나, 또는 기타:(범죄 종류) | 범죄 날짜: ----년 --월 --일 | 범죄 위치: --시 --구 --동 ' 이런 식으로 나타내. 또한, 너가 나타낸 범죄 위치가 ${where}과 상관없다면 XX만 출력해. `;
-
-        const body = {
-          model: "gemini-2.5-flash",
-          messages: [
-            { role: "system", content: "You are a helpful news analyzer." },
-            { role: "user", content: prompt },
-          ],
-        };
-
-        let gRes = await axios.post(Gendpoint, body, {
-          headers: {
-            Authorization: `Bearer ${GapiKey}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        let message =
-          gRes.data.choices?.[0]?.message?.content || "XX | 분석 실패";
-
-        let isXX = message.includes("XX");
-        if(isXX) continue;
-
-        // '|' 단위 파싱
-        
-        let parts = message.split("|").map((p) => p.trim());
-
-        let How = parts[0]?.split(":")[1]?.trim() ?? "";
-        let When = parts[1]?.split(":")[1]?.trim() ?? "";
-        let Where = parts[2]?.split(":")[1]?.trim() ?? "";
-
-        let JungBok = message.includes("JungBok");
-        let together = ExDate.includes(When);
-        ExDate.push(When);
-
-        if (!isXX && !together) {
-          finTitles.push(title);
-          finNews.push([title, link, desc, How, When, Where]);
+        let cleanStr = dateStr.replace(/__/g, "01").trim();
+        const parts = cleanStr.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+        if (parts) {
+            return new Date(parseInt(parts[1]), parseInt(parts[2]) - 1, parseInt(parts[3]));
         }
-      }
-    } catch (err) {
-      console.error("네이버 오류: ", err.message);
+        return null;
+    } catch (e) {
+        return null;
     }
-    console.warn(`${hw} 분석 완료`);
-  }
-
-  return finNews;
 }
 
+// ==========================================
+// 핵심 로직 함수
+// ==========================================
+async function analyzeNews(where) {
+    let ExDate = [""];
+    let titles = [];
+    let finTitles = [];
+    let finNews = [];
+
+    const naverClient = axios.create({
+        headers: {
+            'X-Naver-Client-Id': NaverClientId,
+            'X-Naver-Client-Secret': NaverClientSecret
+        }
+    });
+
+    const geminiClient = axios.create({
+        headers: {
+            'Authorization': `Bearer ${GapiKey}`,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    for (const hw of howList) {
+        const query = `서울 ${where} ${hw}`;
+        const url = `https://openapi.naver.com/v1/search/news.json?query=${encodeURIComponent(query)}&sort=sim&display=${ddplay}&start=1`;
+
+        try {
+            const response = await naverClient.get(url);
+            const items = response.data.items;
+
+            const filteredItems = items.filter(item => {
+                const title = item.title || "";
+                const desc = item.description || "";
+                const pubDate = new Date(item.pubDate);
+                const hasExclude = exclude.some(word => 
+                    title.toLowerCase().includes(word.toLowerCase()) || 
+                    desc.toLowerCase().includes(word.toLowerCase())
+                );
+                const isOld = pubDate.getFullYear() <= minYear;
+                return !hasExclude && !isOld;
+            });
+
+            filteredItems.forEach(item => titles.push(item.title || ""));
+
+            const tasks = filteredItems.map(async (item) => {
+                try {
+                    const title = item.title || "";
+                    const link = item.link || "";
+                    const desc = item.description || "";
+                    const date = item.pubDate || "";
+                    
+                    let MyCase = [];
+                    let HowWhenWhere = [];
+                    let When = "nah";
+                    let together = false;
+                    let JungBok = false;
+                    let Silkyeok = false;
+                    let JungBokTitles = [];
+
+                    const allTitlesStr = titles.join(", '");
+                    const prompt = `"${desc} 기사 날짜: ${date}" 이 내용과 인터넷을 보고 이 내용이 소설의 내용이라면 XX만 출력하고 아니면, 범죄 종류와 날짜, 위치를 두서없이 '범죄 종류: (살인, 절도, 강도, 성범죄, 교통사고 중 하나로) | 범죄 날짜: - | 범죄 위치: --시 --구 --동 '이런 식으로 나타내. 또한, 범행날짜가 ${minYear}년도 전의 일이면 범행날짜와 X를 출력해, '${title}'을 제외한 '${allTitlesStr}'의 제목들 중 이 뉴스와 사건이 조금이라도 비슷한 것 같으면 중복기사들의 제목을 '| 중복 기사: -,-,-'형식으로 추가로, 그리고 '| JungBok!'도 추가로 출력해. 날짜를 정확히 yyyy년 mm월 dd일 형식으로 작성해(ex. 2022년 02월 03일)!! 그리고 내가 시킨 형식이외의 다른 말은 절대로 하지말고 날짜 중 모르는건 _ 로 표시해(ex. 2024년 __월 __일). 범죄 종류 모르겠으면 그냥 XX만 출력해.`;
+
+                    const requestBody = {
+                        model: "gemini-2.5-flash",
+                        messages: [
+                            { role: "system", content: "You are a helpful news analyzer." },
+                            { role: "user", content: prompt }
+                        ]
+                    };
+
+                    const gResponse = await geminiClient.post(Gendpoint, requestBody);
+                    const message = gResponse.data.choices[0].message.content || "";
+
+                    if (message.includes("XX")) { Silkyeok = true; }
+
+                    const HWW = message.split('|').map(x => x.trim()).filter(x => x !== "");
+                    HWW.forEach(factor => {
+                        const parts = factor.split(':', 2);
+                        if (parts.length > 1) HowWhenWhere.push(parts[1].trim());
+                    });
+
+                    if (HWW.length >= 4) {
+                         const jParts = HWW[3].split(':');
+                         if(jParts.length > 1) {
+                             const jTitles = jParts[1].split(',').map(x => x.trim()).filter(x => x !== "");
+                             JungBokTitles.push(...jTitles);
+                         }
+                    }
+
+                    if (HowWhenWhere.length >= 2) {
+                        When = HowWhenWhere[1];
+                        if (ExDate.includes(When)) { together = true; } else { together = false; }
+                        if (message.includes("JungBok")) { JungBok = true; } else { JungBok = false; }
+                        ExDate.push(When);
+
+                        const parsedDate = parseKoreanDate(When);
+                        if (parsedDate && parsedDate.getFullYear() < minYear) {
+                            Silkyeok = true;
+                            ExDate = ExDate.filter(d => d !== When);
+                        }
+
+                        const cleanTitle = title.replace(/<\/?b>/g, "");
+                        MyCase.push(cleanTitle);
+                        MyCase.push(link);
+                        MyCase.push(desc);
+                        MyCase.push(HowWhenWhere[0] || "");
+                        MyCase.push(HowWhenWhere[1] || "");
+                        MyCase.push(HowWhenWhere[2] || "");
+
+                        if (JungBok) {
+                            const isAlreadyInFin = finTitles.includes(cleanTitle);
+                            const isReferencedAsJungBok = finTitles.some(ft => JungBokTitles.includes(ft));
+                            if (!isReferencedAsJungBok && !isAlreadyInFin && !together && !Silkyeok) {
+                                finTitles.push(cleanTitle);
+                                finNews.push(MyCase);
+                            }
+                        }
+
+                        if (!JungBok && !together && !Silkyeok) {
+                            finTitles.push(cleanTitle);
+                            finNews.push(MyCase);
+                        }
+                    }
+                } catch (ex) {
+                    console.error(`Item Error: ${ex.message}`);
+                }
+            });
+
+            await Promise.all(tasks);
+        } catch (e) {
+            console.error(`Batch Error: ${e.message}`);
+        }
+    }
+    return finNews;
+}
