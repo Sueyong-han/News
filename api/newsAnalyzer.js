@@ -177,7 +177,12 @@ export async function analyzeNews(where) {
                     console.error('Item Error: failed to get valid response from Gemini for this item');
                     continue; // skip this item
                 }
-                const messageData = JSON.parse(message);
+                const jsonStart = message.indexOf('[');
+                const jsonEnd = message.lastIndexOf(']') + 1;
+                // message에서 JSON 배열 부분만 가져오기
+                const jsonString = message.substring(jsonStart, jsonEnd);
+
+                const messageData = JSON.parse(jsonString);
                 
                 for(var i = 0; i < titles.length; i++)
                 {
