@@ -177,8 +177,9 @@ export async function analyzeNews(where) {
                       Roop = Roop + 1;
                       console.log("Roop!");
                       analyzeNews(where);
-                      
+                      return;
                     }
+                    if(ex.message == "Request failed with status code 403" && Roop > 3) return;
                     if(ex.message.includes(`Request failed with status code 429`)) 
                     {sleep(500);
                     }
