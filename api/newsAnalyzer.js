@@ -115,7 +115,7 @@ export async function analyzeNews(where) {
                             "Content-Type": "application/json"
                         }
                     });
-                    const message = gResponse.data.choices[0].message.content || "";
+                    const message = gResponse.data.candidates[0].content.parts[0].text;
 
                     if (message.includes("XX")) { Silkyeok = true; }
 
