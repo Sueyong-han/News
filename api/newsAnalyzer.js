@@ -176,7 +176,8 @@ export async function analyzeNews(where) {
                       Gendpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`;
                       Roop = Roop + 1;
                       console.log("Roop!");
-                      return;
+                      analyzeNews(where);
+                      
                     }
                     if(ex.message.includes(`Request failed with status code 429`)) 
                     {sleep(500);
@@ -190,8 +191,9 @@ export async function analyzeNews(where) {
             
         }
     }
-    return finNews;
     Roop = 0;
+    return finNews;
+    
     //fdfdfdf
     //jj
 
