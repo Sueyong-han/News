@@ -13,10 +13,10 @@ var Roop = 0;
 // 환경 변수에서 키 가져오기 (Render 대시보드에서 설정 예정)
 const NaverClientId = "huZd7zaib4TwzKeL1CTf";
 const NaverClientSecret = "_U1v0LcMmI";
-let GapiKey = "AIzaSyA1HEYUYD8-DxONWcDmho-9qrtV24w65Io";
-const GapiKeyOne = "AIzaSyCQc1vU97U6A-zK_VImKFUuaNYkzVhqGG8";//suyeongh584
-const GapiKeyTwo = "AIzaSyA1HEYUYD8-DxONWcDmho-9qrtV24w65Io"; //gnd81967
-const GapiKeyThree = "AIzaSyC0AoiB_U6Vu19eJGw8bTGsVoD-qYtdTxk"; //suyeong090928
+let GapiKey = "AIzaSyBC-rNwAOI_glh0C5V0hV-tYBVuVj1NEFs";
+const GapiKeyOne = "AIzaSyBC-rNwAOI_glh0C5V0hV-tYBVuVj1NEFs";//suyeongh584
+const GapiKeyTwo = "AIzaSyDhdZ_3w310UEPlDb_lqTbYg-3etHRLu2I"; //gnd81967
+const GapiKeyThree = "AIzaSyCnaBnSPSUBtWqwTu0lqtPNqzltM8g_lFk"; //suyeong090928
 var Gendpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`;
 
 // ==========================================
