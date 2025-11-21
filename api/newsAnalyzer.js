@@ -17,7 +17,7 @@ let GapiKey = "AIzaSyA1HEYUYD8-DxONWcDmho-9qrtV24w65Io";
 const GapiKeyOne = "AIzaSyCQc1vU97U6A-zK_VImKFUuaNYkzVhqGG8";//suyeongh584
 const GapiKeyTwo = "AIzaSyA1HEYUYD8-DxONWcDmho-9qrtV24w65Io"; //gnd81967
 const GapiKeyThree = "AIzaSyC0AoiB_U6Vu19eJGw8bTGsVoD-qYtdTxk"; //suyeong090928
-const Gendpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`;
+var Gendpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`;
 
 // ==========================================
 // 유틸리티 함수
@@ -102,10 +102,10 @@ export async function analyzeNews(where) {
                     const prompt = `"${desc} 기사 날짜: ${date}" 이 내용과 인터넷을 보고 이 내용이 소설의 내용이라면 XX만 출력하고 아니면, 범죄 종류와 날짜, 위치를 두서없이 '범죄 종류: (살인, 절도, 강도, 성범죄, 교통사고 중 하나로) | 범죄 날짜: - | 범죄 위치: --시 --구 --동 '이런 식으로 나타내. 또한, 범행날짜가 ${minYear}년도 전의 일이면 범행날짜와 X를 출력해, '${title}'을 제외한 '${allTitlesStr}'의 제목들 중 이 뉴스와 사건이 조금이라도 비슷한 것 같으면 중복기사들의 제목을 '| 중복 기사: -,-,-'형식으로 추가로, 그리고 '| JungBok!'도 추가로 출력해. 날짜를 정확히 yyyy년 mm월 dd일 형식으로 작성해(ex. 2022년 02월 03일)!! 그리고 내가 시킨 형식이외의 다른 말은 절대로 하지말고 날짜 중 모르는건 _ 로 표시해(ex. 2024년 __월 __일). 범죄 종류 모르겠으면 그냥 XX만 출력해.`;
 
                     const requestBody = {
-                    "contents": [
+                    contents: [
                         {
-                        "role": "user",
-                        "parts": [{ "text": "your prompt" }]
+                            role: "user",
+                            parts: [{ text: prompt }]
                         }
                     ]
                     };
@@ -173,6 +173,7 @@ export async function analyzeNews(where) {
                       if(GapiKey == GapiKeyOne) GapiKey = GapiKeyTwo;
                       else if(GapiKey == GapiKeyTwo) GapiKey = GapiKeyThree;
                       else if(GapiKey == GapiKeyThree) GapiKey = GapiKeyOne;
+                      Gendpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`;
                       Roop = Roop + 1;
                       console.log("Roop!");
                       return;
