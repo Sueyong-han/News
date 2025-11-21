@@ -236,6 +236,7 @@ export async function analyzeNews(where) {
         } catch (e) {
             console.error(`Batch Error: ${e.message}`);
         }
+        console.log(`${hw} 분석 완료`);
     }
     Roop = 0;
     return finNews;
