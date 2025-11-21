@@ -124,7 +124,7 @@ export async function analyzeNews(where) {
                             const gResponse = await axios.post(
                                 `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`,
                                 requestBody,
-                                { headers: { "Content-Type": "application/json" }, timeout: 15000 }
+                                { headers: { "Content-Type": "application/json" }, timeout: 60000 }
                             );
 
                             message = (gResponse.data && gResponse.data.candidates && gResponse.data.candidates[0] && gResponse.data.candidates[0].content && gResponse.data.candidates[0].content.parts && gResponse.data.candidates[0].content.parts[0] && gResponse.data.candidates[0].content.parts[0].text) || "";
