@@ -38,6 +38,14 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// rotate GapiKey in cycle
+function rotateKey() {
+    if (GapiKey === GapiKeyOne) GapiKey = GapiKeyTwo;
+    else if (GapiKey === GapiKeyTwo) GapiKey = GapiKeyThree;
+    else if (GapiKey === GapiKeyThree) GapiKey = GapiKeyOne;
+    Gendpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`;
+}
+
 // ==========================================
 // 핵심 로직 함수
 // ==========================================
@@ -54,12 +62,7 @@ export async function analyzeNews(where) {
         }
     });
 
-    const geminiClient = axios.create({
-        headers: {
-            'Authorization': `Bearer ${GapiKey}`,
-            'Content-Type': 'application/json'
-        }
-    });
+    // note: geminiClient is not used because we send key in URL per-request
 
     for (const hw of howList) {
         const query = `서울 ${where} ${hw}`;
@@ -67,7 +70,7 @@ export async function analyzeNews(where) {
 
         try {
             const response = await naverClient.get(url);
-            const items = response.data.items;
+            const items = response.data.items || [];
 
             const filteredItems = items.filter(item => {
                 const title = item.title || "";
@@ -83,13 +86,14 @@ export async function analyzeNews(where) {
 
             filteredItems.forEach(item => titles.push(item.title || ""));
 
-            const tasks = filteredItems.map(async (item) => {
+            // === sequential processing to avoid 429 ===
+            for (const item of filteredItems) {
                 try {
                     const title = item.title || "";
                     const link = item.link || "";
                     const desc = item.description || "";
                     const date = item.pubDate || "";
-                    
+
                     let MyCase = [];
                     let HowWhenWhere = [];
                     let When = "nah";
@@ -102,19 +106,61 @@ export async function analyzeNews(where) {
                     const prompt = `"${desc} 기사 날짜: ${date}" 이 내용과 인터넷을 보고 이 내용이 소설의 내용이라면 XX만 출력하고 아니면, 범죄 종류와 날짜, 위치를 두서없이 '범죄 종류: (살인, 절도, 강도, 성범죄, 교통사고 중 하나로) | 범죄 날짜: - | 범죄 위치: --시 --구 --동 '이런 식으로 나타내. 또한, 범행날짜가 ${minYear}년도 전의 일이면 범행날짜와 X를 출력해, '${title}'을 제외한 '${allTitlesStr}'의 제목들 중 이 뉴스와 사건이 조금이라도 비슷한 것 같으면 중복기사들의 제목을 '| 중복 기사: -,-,-'형식으로 추가로, 그리고 '| JungBok!'도 추가로 출력해. 날짜를 정확히 yyyy년 mm월 dd일 형식으로 작성해(ex. 2022년 02월 03일)!! 그리고 내가 시킨 형식이외의 다른 말은 절대로 하지말고 날짜 중 모르는건 _ 로 표시해(ex. 2024년 __월 __일). 범죄 종류 모르겠으면 그냥 XX만 출력해.`;
 
                     const requestBody = {
-                    contents: [
-                        {
-                            role: "user",
-                            parts: [{ text: prompt }]
-                        }
-                    ]
+                        contents: [
+                            {
+                                role: "user",
+                                parts: [{ text: prompt }]
+                            }
+                        ]
                     };
-                    const gResponse = await axios.post(Gendpoint, requestBody, {
-                        headers: {
-                            "Content-Type": "application/json"
+
+                    // Try up to 3 attempts per item, rotating key on 403, backoff on 429
+                    let attempt = 0;
+                    let message = "";
+                    let success = false;
+
+                    while (attempt < 3 && !success) {
+                        try {
+                            const gResponse = await axios.post(
+                                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`,
+                                requestBody,
+                                { headers: { "Content-Type": "application/json" }, timeout: 15000 }
+                            );
+
+                            message = (gResponse.data && gResponse.data.candidates && gResponse.data.candidates[0] && gResponse.data.candidates[0].content && gResponse.data.candidates[0].content.parts && gResponse.data.candidates[0].content.parts[0] && gResponse.data.candidates[0].content.parts[0].text) || "";
+                            success = true;
+                        } catch (err) {
+                            const msg = err && err.message ? err.message : String(err);
+                            console.error(`Gemini request error (attempt ${attempt + 1}): ${msg}`);
+
+                            if (msg.includes('status code 403') || msg.includes('403')) {
+                                // rotate key and try again once
+                                rotateKey();
+                                Roop = Roop + 1;
+                                console.log('Rotated key due to 403, Roop=', Roop);
+                                attempt++;
+                                // small delay before retry
+                                await sleep(200);
+                                continue;
+                            }
+
+                            if (msg.includes('status code 429') || msg.includes('429') || msg.includes('Too Many Requests')) {
+                                // backoff and retry
+                                await sleep(500 + attempt * 300);
+                                attempt++;
+                                continue;
+                            }
+
+                            // other errors -> break attempts and skip this item
+                            console.error('Non-retryable Gemini error, skipping item:', msg);
+                            break;
                         }
-                    });
-                    const message = gResponse.data.candidates[0].content.parts[0].text;
+                    }
+
+                    if (!success || !message) {
+                        console.error('Item Error: failed to get valid response from Gemini for this item');
+                        continue; // skip this item
+                    }
 
                     if (message.includes("XX")) { Silkyeok = true; }
 
@@ -166,36 +212,31 @@ export async function analyzeNews(where) {
                             finNews.push(MyCase);
                         }
                     }
+
+                    // small pause to avoid hitting rate limits
+                    await sleep(150);
+
                 } catch (ex) {
                     console.error(`Item Error: ${ex.message}`);
+                    // keep behavior: don't recursively call analyzeNews; log and continue
                     if(ex.message == "Request failed with status code 403" && Roop < 2)
                     {
-                      if(GapiKey == GapiKeyOne) GapiKey = GapiKeyTwo;
-                      else if(GapiKey == GapiKeyTwo) GapiKey = GapiKeyThree;
-                      else if(GapiKey == GapiKeyThree) GapiKey = GapiKeyOne;
-                      Gendpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`;
+                      rotateKey();
                       Roop = Roop + 1;
                       console.log("Roop!");
-                      analyzeNews(where);
-                      return;
+                      // don't call analyzeNews recursively
+                      continue;
                     }
-                    if(ex.message == "Request failed with status code 403" && Roop > 3) return;
+                    if(ex.message == "Request failed with status code 403" && Roop > 3) continue;
                     if(ex.message.includes(`Request failed with status code 429`)) 
-                    {sleep(500);
-                    }
+                    {await sleep(500); continue;}
                 }
-            });
+            }
 
-            await Promise.all(tasks);
         } catch (e) {
             console.error(`Batch Error: ${e.message}`);
-            
         }
     }
     Roop = 0;
     return finNews;
-    
-    //fdfdfdf
-    //jj
-
 }
