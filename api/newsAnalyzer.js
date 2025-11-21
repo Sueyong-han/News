@@ -51,7 +51,6 @@ function rotateKey() {
 // ==========================================
 export async function analyzeNews(where) {
     let ExDate = [""];
-    let titles = [];
     let finTitles = [];
     let finNews = [];
 
@@ -83,155 +82,143 @@ export async function analyzeNews(where) {
                 const isOld = pubDate.getFullYear() <= minYear;
                 return !hasExclude && !isOld;
             });
-
+            let titles = [];
+            let links = [];
+            let desc = [];
+            let date = [];
             filteredItems.forEach(item => titles.push(item.title || ""));
-
+            filteredItems.forEach(item => links.push(item.link || ""));
+            filteredItems.forEach(item => desc.push(item.description || ""));
+            filteredItems.forEach(item => date.push(item.pubDate || ""));
+            let NewsInfrom = ""
+            for(let i = 0; i < titles.length; i++)
+            {NewsInfrom = NewsInfrom + "\n" + `제목: ${titles[i]} || 요약: ${desc[i]} || 기사 발간 날짜: ${date[i]}`; }
             // === sequential processing to avoid 429 ===
-            for (const item of filteredItems) {
-                try {
-                    const title = item.title || "";
-                    const link = item.link || "";
-                    const desc = item.description || "";
-                    const date = item.pubDate || "";
+            try {
+                let MyCase = [];
+                let HowWhenWhere = [];
+                let When = "nah";
+                let together = false;
+                let JungBok = false;
+                let Silkyeok = false;
+                let JungBokTitles = [];
 
-                    let MyCase = [];
-                    let HowWhenWhere = [];
-                    let When = "nah";
-                    let together = false;
-                    let JungBok = false;
-                    let Silkyeok = false;
-                    let JungBokTitles = [];
-
-                    const allTitlesStr = titles.join(", '");
-                    const prompt = `"${desc} 기사 날짜: ${date}" 이 내용과 인터넷을 보고 이 내용이 소설의 내용이라면 XX만 출력하고 아니면, 범죄 종류와 날짜, 위치를 두서없이 '범죄 종류: (살인, 절도, 강도, 성범죄, 교통사고 중 하나로) | 범죄 날짜: - | 범죄 위치: --시 --구 --동 '이런 식으로 나타내. 또한, 범행날짜가 ${minYear}년도 전의 일이면 범행날짜와 X를 출력해, '${title}'을 제외한 '${allTitlesStr}'의 제목들 중 이 뉴스와 사건이 조금이라도 비슷한 것 같으면 중복기사들의 제목을 '| 중복 기사: -,-,-'형식으로 추가로, 그리고 '| JungBok!'도 추가로 출력해. 날짜를 정확히 yyyy년 mm월 dd일 형식으로 작성해(ex. 2022년 02월 03일)!! 그리고 내가 시킨 형식이외의 다른 말은 절대로 하지말고 날짜 중 모르는건 _ 로 표시해(ex. 2024년 __월 __일). 범죄 종류 모르겠으면 그냥 XX만 출력해.`;
-
-                    const requestBody = {
-                        contents: [
-                            {
-                                role: "user",
-                                parts: [{ text: prompt }]
-                            }
+                const allTitlesStr = titles.join(", '");
+                const prompt = `너는 유용한 뉴스 분석가야. 다음의 형식을 지켜서 대답해.
+                        1) json배열의 형식으로 대답할것.
+                        [
+                        {
+                        title:"..." <-- 이건 제목
+                        description:"..." <--이건 요약
+                        CrimeKind:"..." <-- 이건 범죄유형(살인,절도,강도, 강간, 교통사고,기타 중 하나)
+                        Date:"..." <-- 이건 뉴스를 보고 추정한 범죄 발생 날짜(정확히 0000년 00월 00일 로 작성할것)
+                        duplication:["...","..."...] <-- 이건 '${allTitlesStr}'의 제목들 중 이 뉴스와 사건이 조금이라도 비슷한 것 같으면 그 중복기사들의 제목
+                        Location: "..." <--이건 뉴스를 보고 추정한 범죄 발생 위치(정확히 ...시 ...구 ...시 로 작성할것, 모른다면 ${where}이라 작성할것)
+                        IsReal: ... <-- 이건 뉴스의 사건이 실제로 일어난 사건인 것 같으면 true, 소설이나 예능처럼 실제로 일어나지 않은 사건인 것 같으면 false를 작성.
+                        }
                         ]
-                    };
 
-                    // Try up to 3 attempts per item, rotating key on 403, backoff on 429
-                    let attempt = 0;
-                    let message = "";
-                    let success = false;
-
-                    while (attempt < 3 && !success) {
-                        try {
-                            const gResponse = await axios.post(
-                                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`,
-                                requestBody,
-                                { headers: { "Content-Type": "application/json" }, timeout: 60000 }
-                            );
-
-                            message = (gResponse.data && gResponse.data.candidates && gResponse.data.candidates[0] && gResponse.data.candidates[0].content && gResponse.data.candidates[0].content.parts && gResponse.data.candidates[0].content.parts[0] && gResponse.data.candidates[0].content.parts[0].text) || "";
-                            success = true;
-                        } catch (err) {
-                            const msg = err && err.message ? err.message : String(err);
-                            console.error(`Gemini request error (attempt ${attempt + 1}): ${msg}`);
-
-                            if (msg.includes('status code 403') || msg.includes('403')) {
-                                // rotate key and try again once
-                                rotateKey();
-                                Roop = Roop + 1;
-                                console.log('Rotated key due to 403, Roop=', Roop);
-                                attempt++;
-                                // small delay before retry
-                                await sleep(200);
-                                continue;
-                            }
-
-                            if (msg.includes('status code 429') || msg.includes('429') || msg.includes('Too Many Requests')) {
-                                // backoff and retry
-                                await sleep(500 + attempt * 300);
-                                attempt++;
-                                continue;
-                            }
-
-                            // other errors -> break attempts and skip this item
-                            console.error('Non-retryable Gemini error, skipping item:', msg);
-                            break;
+                        gemini야, 이 뉴스들을 분석해줘
+                        ${NewsInfrom}
+                        `;
+                const requestBody = {
+                    contents: [
+                        {
+                            role: "user",
+                            parts: [{ text: prompt }]
                         }
-                    }
+                    ]
+                };
 
-                    if (!success || !message) {
-                        console.error('Item Error: failed to get valid response from Gemini for this item');
-                        continue; // skip this item
-                    }
+                // Try up to 3 attempts per item, rotating key on 403, backoff on 429
+                let attempt = 0;
+                let message = "";
+                let success = false;
 
-                    if (message.includes("XX")) { Silkyeok = true; }
+                while (attempt < 3 && !success) {
+                    try {
+                        const gResponse = await axios.post(
+                            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`,
+                            requestBody,
+                            { headers: { "Content-Type": "application/json" }, timeout: 60000 }
+                        );
 
-                    const HWW = message.split('|').map(x => x.trim()).filter(x => x !== "");
-                    HWW.forEach(factor => {
-                        const parts = factor.split(':', 2);
-                        if (parts.length > 1) HowWhenWhere.push(parts[1].trim());
-                    });
+                        message = (gResponse.data && gResponse.data.candidates && gResponse.data.candidates[0] && gResponse.data.candidates[0].content && gResponse.data.candidates[0].content.parts && gResponse.data.candidates[0].content.parts[0] && gResponse.data.candidates[0].content.parts[0].text) || "";
+                        success = true;
+                    } catch (err) {
+                        const msg = err && err.message ? err.message : String(err);
+                        console.error(`Gemini request error (attempt ${attempt + 1}): ${msg}`);
 
-                    if (HWW.length >= 4) {
-                         const jParts = HWW[3].split(':');
-                         if(jParts.length > 1) {
-                             const jTitles = jParts[1].split(',').map(x => x.trim()).filter(x => x !== "");
-                             JungBokTitles.push(...jTitles);
-                         }
-                    }
-
-                    if (HowWhenWhere.length >= 2) {
-                        When = HowWhenWhere[1];
-                        if (ExDate.includes(When)) { together = true; } else { together = false; }
-                        if (message.includes("JungBok")) { JungBok = true; } else { JungBok = false; }
-                        ExDate.push(When);
-
-                        const parsedDate = parseKoreanDate(When);
-                        if (parsedDate && parsedDate.getFullYear() < minYear) {
-                            Silkyeok = true;
-                            ExDate = ExDate.filter(d => d !== When);
+                        if (msg.includes('status code 403') || msg.includes('403')) {
+                            // rotate key and try again once
+                            rotateKey();
+                            Roop = Roop + 1;
+                            console.log('Rotated key due to 403, Roop=', Roop);
+                            attempt++;
+                            // small delay before retry
+                            await sleep(200);
+                            continue;
                         }
 
-                        const cleanTitle = title.replace(/<\/?b>/g, "");
-                        MyCase.push(cleanTitle);
-                        MyCase.push(link);
-                        MyCase.push(desc);
-                        MyCase.push(HowWhenWhere[0] || "");
-                        MyCase.push(HowWhenWhere[1] || "");
-                        MyCase.push(HowWhenWhere[2] || "");
-
-                        if (JungBok) {
-                            const isAlreadyInFin = finTitles.includes(cleanTitle);
-                            const isReferencedAsJungBok = finTitles.some(ft => JungBokTitles.includes(ft));
-                            if (!isReferencedAsJungBok && !isAlreadyInFin && !together && !Silkyeok) {
-                                finTitles.push(cleanTitle);
-                                finNews.push(MyCase);
-                            }
+                        if (msg.includes('status code 429') || msg.includes('429') || msg.includes('Too Many Requests')) {
+                            // backoff and retry
+                            await sleep(500 + attempt * 300);
+                            attempt++;
+                            continue;
                         }
 
-                        if (!JungBok && !together && !Silkyeok) {
-                            finTitles.push(cleanTitle);
-                            finNews.push(MyCase);
-                        }
+                        // other errors -> break attempts and skip this item
+                        console.error('Non-retryable Gemini error, skipping item:', msg);
+                        break;
                     }
-
-                    // small pause to avoid hitting rate limits
-                    await sleep(150);
-
-                } catch (ex) {
-                    console.error(`Item Error: ${ex.message}`);
-                    // keep behavior: don't recursively call analyzeNews; log and continue
-                    if(ex.message == "Request failed with status code 403" && Roop < 2)
-                    {
-                      rotateKey();
-                      Roop = Roop + 1;
-                      console.log("Roop!");
-                      // don't call analyzeNews recursively
-                      continue;
-                    }
-                    if(ex.message == "Request failed with status code 403" && Roop > 3) continue;
-                    if(ex.message.includes(`Request failed with status code 429`)) 
-                    {await sleep(500); continue;}
                 }
+
+                if (!success || !message) {
+                    console.error('Item Error: failed to get valid response from Gemini for this item');
+                    continue; // skip this item
+                }
+                const messageData = JSON.parse(message);
+                
+                for(var i = 0; i < titles.length; i++)
+                {
+                    messageData[i].title = messageData[i].title.replace(/<\/?b>/g, "");
+                    messageData[i].description = messageData[i].description.replace(/<\/?b>/g, "");
+                    if(messageData[i].IsReal == true)
+                        {
+                            if(messageData[i].duplication.length > 0)
+                            {
+                                if(!messageData[i].duplication.some(element => finTitles.includes(element)))
+                                {
+                                finTitles.push(messageData[i].title);
+                                finNews.push(messageData[i]);
+                                }
+                            }
+                            else{
+                                finTitles.push(messageData[i].title);
+                                finNews.push(messageData[i]);
+                            }
+                        } 
+                }
+            
+                // small pause to avoid hitting rate limits
+                await sleep(150);
+
+            } catch (ex) {
+                console.error(`Item Error: ${ex.message}`);
+                // keep behavior: don't recursively call analyzeNews; log and continue
+                if(ex.message == "Request failed with status code 403" && Roop < 2)
+                {
+                    rotateKey();
+                    Roop = Roop + 1;
+                    console.log("Roop!");
+                    // don't call analyzeNews recursively
+                    continue;
+                }
+                if(ex.message == "Request failed with status code 403" && Roop > 3) continue;
+                if(ex.message.includes(`Request failed with status code 429`)) 
+                {await sleep(500); continue;}
             }
+        
 
         } catch (e) {
             console.error(`Batch Error: ${e.message}`);
