@@ -16,6 +16,7 @@ const NaverClientSecret = "_U1v0LcMmI";
 let GapiKey = "AIzaSyA1HEYUYD8-DxONWcDmho-9qrtV24w65Io";
 const GapiKeyOne = "AIzaSyCQc1vU97U6A-zK_VImKFUuaNYkzVhqGG8";//suyeongh584
 const GapiKeyTwo = "AIzaSyA1HEYUYD8-DxONWcDmho-9qrtV24w65Io"; //gnd81967
+const GapiKeyThree = "AIzaSyC0AoiB_U6Vu19eJGw8bTGsVoD-qYtdTxk"; //suyeong090928
 const Gendpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
 // ==========================================
@@ -163,10 +164,11 @@ export async function analyzeNews(where) {
                     }
                 } catch (ex) {
                     console.error(`Item Error: ${ex.message}`);
-                    if(ex.message == "Request failed with status code 403" && Roop < 1)
+                    if(ex.message == "Request failed with status code 403" && Roop < 2)
                     {
                       if(GapiKey == GapiKeyOne) GapiKey = GapiKeyTwo;
-                      else if(GapiKey == GapiKeyTwo) GapiKey = GapiKeyOne;
+                      else if(GapiKey == GapiKeyTwo) GapiKey = GapiKeyThree;
+                      else if(GapiKey == GapiKeyThree) GapiKey = GapiKeyOne;
                       Roop = Roop + 1;
                       console.log("Roop!");
                       analyzeNews(where);
