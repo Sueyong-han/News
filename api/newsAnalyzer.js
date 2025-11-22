@@ -235,3 +235,36 @@ export async function analyzeNews(where) {
     Roop = 0;
     return finNews;
 }
+export async function AIfeeback(hhow,wwhere) {
+    // 1. 요청 본문 (Request Body) 구성
+    const requestBody = {
+        contents: [
+            {
+                role: "user",
+                parts: [{ text: `${wwhere}에서 ${hhow}사건을 예방하거나 처했을때 대응 방법을 간략하게 6줄 정도로 적어줘` }]
+            }
+        ]
+    };
+    
+    console.log(`[Gemini 호출] ${userPrompt} ...`);
+    
+    try {
+        // 2. Axios를 사용하여 POST 요청 전송
+        const response = await axios.post(
+            Gendpoint,  // 구성된 API Endpoint URL
+            requestBody,
+            { 
+                headers: { "Content-Type": "application/json" },
+                timeout: 60000 // 타임아웃 60초 설정
+            }
+        );
+
+        // 3. 응답에서 텍스트 결과 추출
+        const candidate = response.data?.candidates?.[0];
+        const resultText = candidate?.content?.parts?.[0]?.text;
+
+        if (resultText) {
+            console.log("✅ API 호출 성공");
+            return resultText.trim();
+        }
+}
