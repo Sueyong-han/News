@@ -235,13 +235,13 @@ export async function analyzeNews(where) {
     Roop = 0;
     return finNews;
 }
-export async function AIfeeback(hhow,wwhere) {
+export async function AIfeeback(quest) {
     // 1. 요청 본문 (Request Body) 구성
     const requestBody = {
         contents: [
             {
                 role: "user",
-                parts: [{ text: `${wwhere}에서 ${hhow}사건을 예방하거나 처했을때 대응 방법을 간략하게 6줄 정도로 적어줘` }]
+                parts: [{ text: quest }]
             }
         ]
     };
@@ -267,4 +267,8 @@ export async function AIfeeback(hhow,wwhere) {
             console.log("✅ API 호출 성공");
             return resultText.trim();
         }
+    catch(e)
+    {
+        console.log(e);
+    }
 }

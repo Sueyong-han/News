@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { analyzeNews } from "./api/newsAnalyzer.js";
+import { AIfeeback } from "./api/newsAnalyzer.js";
 
 const app = express();
 app.use(cors());
@@ -18,10 +19,16 @@ app.get("/", (req, res) => {
 app.get("/news", async (req, res) => {
   try {
     let placee = decodeURIComponent(req.query.place) || "에러 못 받음";
+    if(placee.includes("질문:")) 
+    {
+       question = placee.replace("질문:","");
+       const data = await AIfeeback(question);
+    }
+    else{
     console.log(`place: ${placee}`);
-    const data = await analyzeNews(placee);
-    
+    const data = await analyzeNews(placee);}
     res.json({ success: true, data });
+
   } catch (err) {
     console.error(err);
     res.json({ success: false, error: err.message });
