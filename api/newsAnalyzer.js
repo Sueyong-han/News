@@ -267,6 +267,7 @@ export async function AIfeeback(quest) {
             console.log("✅ API 호출 성공");
             return resultText.trim();
         }
+    }
     catch(e)
     {
         console.log(e);
