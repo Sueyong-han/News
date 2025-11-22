@@ -18,9 +18,9 @@ app.get("/", (req, res) => {
 
 app.get("/news", async (req, res) => {
   try {
+    let data;
     let placee = decodeURIComponent(req.query.place) || "에러 못 받음";
     if(placee.includes("질문:")) 
-    const data;
     {
        question = placee.replace("질문:","");
        data = await AIfeeback(question);
