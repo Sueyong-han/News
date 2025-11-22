@@ -92,7 +92,7 @@ export async function analyzeNews(where) {
             filteredItems.forEach(item => date.push(item.pubDate || ""));
             let NewsInfrom = ""
             for(let i = 0; i < titles.length; i++)
-            {NewsInfrom = NewsInfrom + "\n" + `제목: ${titles[i]} || 요약: ${desc[i]} || 기사 발간 날짜: ${date[i]}`; }
+            {NewsInfrom = NewsInfrom + "\n" + `제목: ${titles[i]} || 링크: ${links[i]} || 요약: ${desc[i]} || 기사 발간 날짜: ${date[i]}`; }
             // === sequential processing to avoid 429 ===
             try {
                 let MyCase = [];
@@ -110,7 +110,7 @@ export async function analyzeNews(where) {
                         {
                         title:"..." <-- 이건 제목
                         description:"..." <--이건 요약
-                        CrimeKind:"..." <-- 이건 범죄유형(살인,절도,강도, 강간, 교통사고,기타 중 하나)
+                        CrimeKind:"..." <-- 이건 범죄유형(살인,절도,강도, 강간, 교통사고 중 하나. 이중에 없다면 그냥 XX를 작성할것)
                         Date:"..." <-- 이건 뉴스를 보고 추정한 범죄 발생 날짜(정확히 0000년 00월 00일 로 작성할것)
                         duplication:["...","..."...] <-- 이건 '${allTitlesStr}'의 제목들 중 이 뉴스와 사건이 조금이라도 비슷한 것 같으면 그 중복기사들의 제목
                         Location: "..." <--이건 뉴스를 보고 추정한 범죄 발생 위치(정확히 ...시 ...구 ...시 로 작성할것, 모른다면 ${where}이라 작성할것)
@@ -188,6 +188,7 @@ export async function analyzeNews(where) {
                 {
                     messageData[i].title = messageData[i].title.replace(/<\/?b>/g, "");
                     messageData[i].description = messageData[i].description.replace(/<\/?b>/g, "");
+                    if(messageData[i].CrimeKind.includes("XX")) messageData[i].IsReal = false;
                     if(messageData[i].IsReal == true)
                         {
                             if(messageData[i].duplication.length > 0)
