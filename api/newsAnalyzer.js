@@ -13,7 +13,7 @@ var Roop = 0;
 // 환경 변수에서 키 가져오기 (Render 대시보드에서 설정 예정)
 const NaverClientId = "huZd7zaib4TwzKeL1CTf";
 const NaverClientSecret = "_U1v0LcMmI";
-let GapiKey = "AIzaSyAOt71PFgIDYPkaoAHnd14lb75JGhhSVEw";
+let GapiKey = "AIzaSyCyOTy446Hn217FGgUU14iaJrSC9bEAj6g";
 const GapiKeyOne = "AIzaSyAOt71PFgIDYPkaoAHnd14lb75JGhhSVEw";//suyeongh584 AIzaSyBC-rNwAOI_glh0C5V0hV-tYBVuVj1NEFs
 const GapiKeyTwo = "AIzaSyAChnr7yu0t8xwnMMQPEpF8l2MJhmNiSAs"; //gnd81967 AIzaSyDhdZ_3w310UEPlDb_lqTbYg-3etHRLu2I
 const GapiKeyThree = "AIzaSyAOt71PFgIDYPkaoAHnd14lb75JGhhSVEw"; //suyeong090928 AIzaSyCnaBnSPSUBtWqwTu0lqtPNqzltM8g_lFk
