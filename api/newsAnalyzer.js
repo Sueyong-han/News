@@ -13,10 +13,10 @@ var Roop = 0;
 // 환경 변수에서 키 가져오기 (Render 대시보드에서 설정 예정)
 const NaverClientId = "huZd7zaib4TwzKeL1CTf";
 const NaverClientSecret = "_U1v0LcMmI";
-let GapiKey = "AIzaSyCQc1vU97U6A-zK_VImKFUuaNYkzVhqGG8";
-const GapiKeyOne = "AIzaSyCQc1vU97U6A-zK_VImKFUuaNYkzVhqGG8";//suyeongh584 AIzaSyBC-rNwAOI_glh0C5V0hV-tYBVuVj1NEFs
-const GapiKeyTwo = "AIzaSyA1HEYUYD8-DxONWcDmho-9qrtV24w65Io"; //gnd81967 AIzaSyDhdZ_3w310UEPlDb_lqTbYg-3etHRLu2I
-const GapiKeyThree = "AIzaSyC0AoiB_U6Vu19eJGw8bTGsVoD-qYtdTxk"; //suyeong090928 AIzaSyCnaBnSPSUBtWqwTu0lqtPNqzltM8g_lFk
+let GapiKey = "AIzaSyAOt71PFgIDYPkaoAHnd14lb75JGhhSVEw";
+const GapiKeyOne = "AIzaSyAOt71PFgIDYPkaoAHnd14lb75JGhhSVEw";//suyeongh584 AIzaSyBC-rNwAOI_glh0C5V0hV-tYBVuVj1NEFs
+const GapiKeyTwo = "AIzaSyAOt71PFgIDYPkaoAHnd14lb75JGhhSVEw"; //gnd81967 AIzaSyDhdZ_3w310UEPlDb_lqTbYg-3etHRLu2I
+const GapiKeyThree = "AIzaSyAOt71PFgIDYPkaoAHnd14lb75JGhhSVEw"; //suyeong090928 AIzaSyCnaBnSPSUBtWqwTu0lqtPNqzltM8g_lFk
 var Gendpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`;
 
 // ==========================================
