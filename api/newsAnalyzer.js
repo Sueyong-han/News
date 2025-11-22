@@ -15,7 +15,7 @@ const NaverClientId = "huZd7zaib4TwzKeL1CTf";
 const NaverClientSecret = "_U1v0LcMmI";
 let GapiKey = "AIzaSyAOt71PFgIDYPkaoAHnd14lb75JGhhSVEw";
 const GapiKeyOne = "AIzaSyAOt71PFgIDYPkaoAHnd14lb75JGhhSVEw";//suyeongh584 AIzaSyBC-rNwAOI_glh0C5V0hV-tYBVuVj1NEFs
-const GapiKeyTwo = "AIzaSyAOt71PFgIDYPkaoAHnd14lb75JGhhSVEw"; //gnd81967 AIzaSyDhdZ_3w310UEPlDb_lqTbYg-3etHRLu2I
+const GapiKeyTwo = "AIzaSyAChnr7yu0t8xwnMMQPEpF8l2MJhmNiSAs"; //gnd81967 AIzaSyDhdZ_3w310UEPlDb_lqTbYg-3etHRLu2I
 const GapiKeyThree = "AIzaSyAOt71PFgIDYPkaoAHnd14lb75JGhhSVEw"; //suyeong090928 AIzaSyCnaBnSPSUBtWqwTu0lqtPNqzltM8g_lFk
 var Gendpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GapiKey}`;
 
@@ -110,6 +110,7 @@ export async function analyzeNews(where) {
                         {
                         title:"..." <-- 이건 제목
                         description:"..." <--이건 요약
+                        link:"..." <--이건 내가 준 링크 그대로 작성할것
                         CrimeKind:"..." <-- 이건 범죄유형(살인,절도,강도, 강간, 교통사고 중 하나. 이중에 없다면 그냥 XX를 작성할것)
                         Date:"..." <-- 이건 뉴스를 보고 추정한 범죄 발생 날짜(정확히 0000년 00월 00일 로 작성할것)
                         duplication:["...","..."...] <-- 이건 '${allTitlesStr}'의 제목들 중 이 뉴스와 사건이 조금이라도 비슷한 것 같으면 그 중복기사들의 제목
