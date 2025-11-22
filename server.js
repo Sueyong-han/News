@@ -20,13 +20,14 @@ app.get("/news", async (req, res) => {
   try {
     let placee = decodeURIComponent(req.query.place) || "에러 못 받음";
     if(placee.includes("질문:")) 
+    const data;
     {
        question = placee.replace("질문:","");
-       const data = await AIfeeback(question);
+       data = await AIfeeback(question);
     }
     else{
     console.log(`place: ${placee}`);
-    const data = await analyzeNews(placee);}
+    data = await analyzeNews(placee);}
     res.json({ success: true, data });
 
   } catch (err) {
